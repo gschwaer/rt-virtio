@@ -1,0 +1,35 @@
+From 540b33a5e2856ffbe8e43cdcb2575bb2008e66bf Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Gero=20Schw=C3=A4ricke?= <gero.schwaericke@tum.de>
+Date: Sun, 14 Feb 2021 18:15:22 +0100
+Subject: [PATCH] Fix interrupt priorities for virtualized GIC not being set
+
+---
+ hypervisor/arch/arm-common/gic-v2.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/hypervisor/arch/arm-common/gic-v2.c b/hypervisor/arch/arm-common/gic-v2.c
+index d448ec40..6a272f34 100644
+--- a/hypervisor/arch/arm-common/gic-v2.c
++++ b/hypervisor/arch/arm-common/gic-v2.c
+@@ -289,6 +289,7 @@ static int gicv2_inject_irq(u16 irq_id, u16 sender)
+ 	int first_free = -1;
+ 	u32 lr;
+ 	unsigned long elsr[2];
++	u8 prio;
+ 
+ 	elsr[0] = mmio_read32(gich_base + GICH_ELSR0);
+ 	elsr[1] = mmio_read32(gich_base + GICH_ELSR1);
+@@ -313,6 +314,10 @@ static int gicv2_inject_irq(u16 irq_id, u16 sender)
+ 	lr = irq_id;
+ 	lr |= GICH_LR_PENDING_BIT;
+ 
++	/* Fetch interrupt priority from gicd and insert into lr entry */
++	prio = mmio_read8(gicd_base + GICD_IPRIORITYR + irq_id);
++	lr |= (u32)(prio & 0xF8) << 20;
++
+ 	if (is_sgi(irq_id)) {
+ 		lr |= (sender & 0x7) << GICH_LR_CPUID_SHIFT;
+ 	} else {
+-- 
+2.20.1
+

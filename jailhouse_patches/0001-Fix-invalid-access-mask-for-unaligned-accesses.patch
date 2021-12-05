@@ -1,0 +1,43 @@
+From 02cd786ca78a1931ca33c73a298bbed965220a6b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Gero=20Schw=C3=A4ricke?= <gero.schwaericke@tum.de>
+Date: Sun, 14 Feb 2021 18:10:11 +0100
+Subject: [PATCH] Fix invalid access mask for unaligned accesses
+
+---
+ hypervisor/arch/arm-common/irqchip.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/hypervisor/arch/arm-common/irqchip.c b/hypervisor/arch/arm-common/irqchip.c
+index 00233e2b..8e63c68c 100644
+--- a/hypervisor/arch/arm-common/irqchip.c
++++ b/hypervisor/arch/arm-common/irqchip.c
+@@ -71,6 +71,11 @@ restrict_bitmask_access(struct mmio_access *mmio, unsigned int reg_index,
+ 		if (irqchip_irq_in_cell(cell, first_irq + irq))
+ 			access_mask |= irq_bits << (irq * bits_per_irq);
+ 
++	if (mmio->address & 0b11) {
++		assert(mmio->size == 1 || mmio->size == 2);
++		access_mask = access_mask >> (mmio->address & 0b11)*8;
++	}
++
+ 	if (!mmio->is_write) {
+ 		/* Restrict the read value */
+ 		mmio_perform_access(gicd_base, mmio);
+@@ -166,8 +171,12 @@ static enum mmio_result gic_handle_dist_access(void *arg,
+ 		break;
+ 
+ 	case REG_RANGE(GICD_IPRIORITYR, 255, 4):
+-		ret = restrict_bitmask_access(mmio, (reg & 0x3ff) / 4, 8,
+-					      false);
++		/* only byte or word accesses are allowed for GICD_IPRIORITYR */
++		if (mmio->size == 1 || mmio->size == 4)
++			ret = restrict_bitmask_access(mmio, (reg & 0x3ff) / 4,
++						      8, false);
++		else
++			ret = MMIO_ERROR;
+ 		break;
+ 
+ 	default:
+-- 
+2.20.1
+

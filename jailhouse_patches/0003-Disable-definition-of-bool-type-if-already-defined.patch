@@ -1,0 +1,26 @@
+From 27e5521c3915d1d00b33722f0d49a4f93e14a190 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Gero=20Schw=C3=A4ricke?= <gero.schwaericke@tum.de>
+Date: Fri, 12 Feb 2021 20:42:17 +0100
+Subject: [PATCH] Disable definition of bool type if already defined
+
+---
+ inmates/lib/include/inmate_common.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/inmates/lib/include/inmate_common.h b/inmates/lib/include/inmate_common.h
+index f87f95c0..cac4e66a 100644
+--- a/inmates/lib/include/inmate_common.h
++++ b/inmates/lib/include/inmate_common.h
+@@ -84,7 +84,9 @@ typedef u32 __u32;
+ typedef s64 __s64;
+ typedef u64 __u64;
+ 
++#if !defined(true) && !defined(false) && !defined(bool)
+ typedef enum { true = 1, false = 0 } bool;
++#endif
+ 
+ #include <jailhouse/hypercall.h>
+ 
+-- 
+2.20.1
+

@@ -1,0 +1,1 @@
+This is a fork of [bao-baremetal-guest](https://github.com/bao-project/bao-baremetal-guest), which was originally intended to be used for [freertos-over-bao](https://github.com/bao-project/freertos-over-bao) on [Bao hypervisor](https://github.com/bao-project/bao-hypervisor).

@@ -1,0 +1,23 @@
+#ifndef PLAT_H
+#define PLAT_H
+
+#define PLAT_MEM_BASE 0x0
+#define PLAT_MEM_SIZE 0x8000000
+
+#define NUM_UART		2
+
+#define UART_0_INTERRUPT    	53
+#define UART_1_INTERRUPT      	54
+
+#define UART_0_ADDRESS    	0xFF000000
+#define UART_1_ADDRESS      	0xFF010000
+
+#ifdef USE_SECONDARY_UART
+#define UART_IRQ_ID	UART_1_INTERRUPT
+#define UART_ADDRESS	UART_1_ADDRESS
+#else
+#define UART_IRQ_ID	UART_0_INTERRUPT
+#define UART_ADDRESS	UART_0_ADDRESS
+#endif
+
+#endif
